@@ -86,7 +86,7 @@ The value returned is greater than 0 and lower or equal to 1.
 
 =head1 SEE ALSO
 
-L<AnyEvent::Watcher::CPUUsage|AnyEvent::Watcher::CPUUsage> for a more practical use for this module.
+L<AnyEvent::Monitor::CPU|AnyEvent::Monitor::CPU> for a more practical use for this module.
 
 
 =head1 AUTHOR
