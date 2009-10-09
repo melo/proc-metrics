@@ -19,7 +19,6 @@ sub new {
   my $self = bless {
     cb => delete $args{cb} || croak("Required parameter 'cb' not found, "),
 
-    after => delete $args{after} || $args{interval} || .25,
     interval => delete $args{interval} || .25,
 
     high         => delete $args{high}         || .95,
@@ -43,7 +42,7 @@ sub start {
   my $self = shift;
 
   $self->{timer} = AnyEvent->timer(
-    after    => $self->{after},
+    after    => $self->{interval},
     interval => $self->{interval},
     cb       => sub { $self->_check_cpu },
   );
