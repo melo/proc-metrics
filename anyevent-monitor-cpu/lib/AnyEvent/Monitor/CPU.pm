@@ -16,7 +16,7 @@ sub new {
   my $class = shift;
   my %args = @_ == 1 ? %{$_[0]} : @_;
 
-  my $self = {
+  my $self = bless {
     cb => delete $args{cb} || croak("Required parameter 'cb' not found, "),
 
     after => delete $args{after} || $args{interval} || .25,
@@ -32,8 +32,16 @@ sub new {
     cpu => delete $args{cpu} || Proc::CPUUsage->new,
     usage  => undef,
     active => 1,
-  };
+  }, $class;
+  
+  $self->start;
 
+  return $self;
+}
+
+sub start {
+  my $self = shift;
+  
   $self->{timer} = AnyEvent->timer(
     after    => $self->{after},
     interval => $self->{interval},
@@ -41,11 +49,13 @@ sub new {
   );
 
   $self->{usage} = $self->{cpu}->usage;
-
-  return bless $self, $class;
+  
+  return;
 }
 
-sub usage  { return $_[0]->{usage} }
+sub stop { delete $_[0]->{timer} }
+
+sub usage  { return $_[0]->{usage}  }
 sub active { return $_[0]->{active} }
 
 sub _check_cpu {

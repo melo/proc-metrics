@@ -47,47 +47,73 @@ my @cases = (
   ['default_values' => {high => .95, low => .80}],
   ['keep_it_busy'   => {high => .97, low => .95}],
   ['take_it_slow'   => {high => .30, low => .20}],
+  [ 'half-empty' => {
+      high         => .55,
+      low          => .45,
+      high_samples => 4,
+      low_samples  => 4,
+      interval     => .1,
+      cycles       => 3
+    }
+  ],
 );
 
 for my $tc (@cases) {
   my ($name, $params) = @$tc;
+  my $cv = AnyEvent->condvar;
 
   diag(
     "Starting test '$name': high => $params->{high}, low => $params->{low}");
 
-  my $cv = AnyEvent->condvar;
-  start_load_watcher($cv, $params);
-  my ($high, $low, $h_iters, $l_iters) = $cv->recv;
-
-  ok(
-    $high >= $params->{high},
-    "Good high value ($h_iters for $high) in '$name' (target $params->{high})"
+  ## Make sure we stop it at some point
+  my $secs = 10 * ($params->{cycles} || 1);
+  my $time_limit = AnyEvent->timer(
+    after => $secs,
+    cb    => sub {
+      $cv->send();
+    }
   );
-  ok($low <= $params->{low},
-    "Good low value ($l_iters for $low) in '$name' (target $params->{low})");
+
+  my $mon = start_load_watcher($name, $cv, $params);
+  my ($high, $low, $h_iters, $l_iters) = $cv->recv;
+  $mon->stop;
+
+  if (!$high) {
+    fail("Aborted test after $secs seconds");
+  }
+  else {
+    ok(
+      $high >= $params->{high},
+      "Good high value ($h_iters for $high) in '$name' (target $params->{high})"
+    );
+    ok(
+      $low <= $params->{low},
+      "Good low value ($l_iters for $low) in '$name' (target $params->{low})"
+    );
+  }
 }
 
 done_testing();
 
 sub start_load_watcher {
-  my ($cv, $params) = @_;
+  my ($test_name, $cv, $params) = @_;
 
   ## the load watcher
   my $expected_active = 1;
-  my $warm_up_cycles = $ENV{WARM_UP_CYCLES} || 1;
+  my $warm_up_cycles = $params->{cycles} || $ENV{WARM_UP_CYCLES} || 1;
   my ($h_usage, $l_usage, $h_iters, $l_iters);
 
   return monitor_cpu %$params, cb => sub {
     my ($cpu, $active) = @_;
 
     is($active, $expected_active,
-      "Got CPU Monitor trigger for expected state $expected_active")
-      unless $warm_up_cycles;
+      "Got CPU Monitor trigger for expected state $expected_active ($test_name)"
+    ) unless $warm_up_cycles;
 
     if ($active == 0) {
       $h_usage = $cpu->usage;
       $h_iters = $iters;
-      note("Load over limit at ${h_iters}'s: $h_usage");
+      note("Load over limit at ${h_iters}'s: $h_usage ($test_name)");
 
       $direction       = -1;
       $expected_active = 1;
@@ -95,7 +121,7 @@ sub start_load_watcher {
     else {
       $l_usage = $cpu->usage;
       $l_iters = $iters;
-      note("Load under limit at ${l_iters}'s: $l_usage");
+      note("Load under limit at ${l_iters}'s: $l_usage ($test_name)");
 
       $cv->send($h_usage, $l_usage, $h_iters, $l_iters)
         unless $warm_up_cycles;
@@ -104,5 +130,8 @@ sub start_load_watcher {
       $expected_active = 0;
       $warm_up_cycles-- if $warm_up_cycles > 0;
     }
+    note(
+      ">>> active? $active, next expected $expected_active, direction $direction, warm_up_cycles $warm_up_cycles ($test_name)"
+    );
     }
 }
