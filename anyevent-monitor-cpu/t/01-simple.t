@@ -75,6 +75,11 @@ for my $tc (@cases) {
   );
 
   my $mon = start_load_watcher($name, $cv, $params);
+  my $stats = $mon->stats;
+  ok(!$stats->{usage_count});
+  ok(!$stats->{usage_sum});
+  ok(!$stats->{usage_avg});
+
   my ($high, $low, $h_iters, $l_iters) = $cv->recv;
   $mon->stop;
 
@@ -90,6 +95,22 @@ for my $tc (@cases) {
       $low <= $params->{low},
       "Good low value ($l_iters for $low) in '$name' (target $params->{low})"
     );
+
+    $stats = $mon->stats;
+    ok($stats->{usage_count});
+    ok($stats->{usage_sum});
+    ok($stats->{usage_avg});
+    my $margin = $params->{high} - $params->{low};
+    if ($margin >= .10) {
+      ok(
+        $stats->{usage_avg} > ($params->{low} - $margin / 2),
+        "Average usage ($stats->{usage_avg}) is above lower watermark"
+      );
+      ok(
+        $stats->{usage_avg} < ($params->{high} + $margin / 2),
+        "Average usage ($stats->{usage_avg}) is below high watermark"
+      );
+    }
   }
 }
 
@@ -131,8 +152,11 @@ sub start_load_watcher {
 
       $direction       = 1;
       $expected_active = 0;
-      $warm_up_cycles-- if $warm_up_cycles > 0;
-      
+      if ($warm_up_cycles > 0) {
+        $warm_up_cycles--;
+        $cpu->reset_stats if $warm_up_cycles == 0;
+      }
+
       ok(!$cpu->is_high);
       ok($cpu->is_low);
     }

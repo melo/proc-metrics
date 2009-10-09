@@ -50,6 +50,7 @@ sub start {
   );
 
   $self->{usage} = $self->{cpu}->usage;
+  $self->reset_stats;  
 
   return;
 }
@@ -60,6 +61,28 @@ sub usage   { return $_[0]->{usage} }
 sub is_low  { return $_[0]->{state} == 1 }
 sub is_high { return $_[0]->{state} == 0 }
 
+sub reset_stats {
+  my ($self) = @_;
+  
+  $self->{usage_sum} = 0;
+  $self->{usage_count} = 0;
+}
+
+sub stats {
+  my ($self) = @_;
+  my %stats;
+  
+  my ($count, $sum);
+  if ($count = $self->{usage_count}) {
+    $sum = $self->{usage_sum};
+    $stats{usage_avg} = $sum/$count;
+  }
+  $stats{usage_count} = $count;
+  $stats{usage_sum}   = $sum;
+
+  return \%stats;
+}
+
 sub _check_cpu {
   my $self = $_[0];
   my $chs  = $self->{current_high_samples};
@@ -68,6 +91,8 @@ sub _check_cpu {
   my $usage = $self->{usage} = $self->{cpu}->usage;
   if    ($usage > $self->{high}) { $chs++; $cls = 0 }
   elsif ($usage < $self->{low})  { $cls++; $chs = 0 }
+  $self->{usage_sum} += $usage;
+  $self->{usage_count}++;
 
   my $hs      = $self->{high_samples};
   my $ls      = $self->{low_samples};
