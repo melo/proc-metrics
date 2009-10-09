@@ -138,7 +138,7 @@ sub start_load_watcher {
 
       $direction       = -1;
       $expected_active = 1;
-      
+
       ok($cpu->is_high);
       ok(!$cpu->is_low);
     }
@@ -160,8 +160,5 @@ sub start_load_watcher {
       ok(!$cpu->is_high);
       ok($cpu->is_low);
     }
-    note(
-      ">>> active? $active, next expected $expected_active, direction $direction, warm_up_cycles $warm_up_cycles ($test_name)"
-    );
     }
 }
