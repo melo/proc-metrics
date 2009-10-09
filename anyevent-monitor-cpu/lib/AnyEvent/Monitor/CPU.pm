@@ -29,7 +29,7 @@ sub new {
     cur_high_samples => 0,
     cur_low_samples  => 0,
 
-    cpu => delete $args{cpu} || Proc::CPUUsage->new,
+    cpu   => Proc::CPUUsage->new,
     usage => undef,
     state => 1,
   }, $class;
