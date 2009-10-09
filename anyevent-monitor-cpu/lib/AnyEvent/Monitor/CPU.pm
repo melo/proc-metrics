@@ -30,10 +30,10 @@ sub new {
     cur_low_samples  => 0,
 
     cpu => delete $args{cpu} || Proc::CPUUsage->new,
-    usage  => undef,
-    active => 1,
+    usage => undef,
+    state => 1,
   }, $class;
-  
+
   $self->start;
 
   return $self;
@@ -41,7 +41,7 @@ sub new {
 
 sub start {
   my $self = shift;
-  
+
   $self->{timer} = AnyEvent->timer(
     after    => $self->{after},
     interval => $self->{interval},
@@ -49,14 +49,15 @@ sub start {
   );
 
   $self->{usage} = $self->{cpu}->usage;
-  
+
   return;
 }
 
 sub stop { delete $_[0]->{timer} }
 
-sub usage  { return $_[0]->{usage}  }
-sub active { return $_[0]->{active} }
+sub usage   { return $_[0]->{usage} }
+sub is_low  { return $_[0]->{state} == 1 }
+sub is_high { return $_[0]->{state} == 0 }
 
 sub _check_cpu {
   my $self = $_[0];
@@ -67,25 +68,30 @@ sub _check_cpu {
   if    ($usage > $self->{high}) { $chs++; $cls = 0 }
   elsif ($usage < $self->{low})  { $cls++; $chs = 0 }
 
-  my $hs     = $self->{high_samples};
-  my $ls     = $self->{low_samples};
-  my $active = $self->{active};
+  my $hs      = $self->{high_samples};
+  my $ls      = $self->{low_samples};
+  my $state   = $self->{state};
+  my $trigger = 0;
   if ($chs >= $hs) {
     $chs = $hs;
-    if ($active) {
-      $self->{cb}->($self, $active = 0);
+    if ($state) {
+      $state   = 0;
+      $trigger = 1;
     }
   }
   elsif ($cls >= $ls) {
     $cls = $ls;
-    if (!$active) {
-      $self->{cb}->($self, $active = 1);
+    if (!$state) {
+      $state   = 1;
+      $trigger = 1;
     }
   }
 
-  $self->{active}               = $active;
+  $self->{state}                = $state;
   $self->{current_high_samples} = $chs;
   $self->{current_low_samples}  = $cls;
+
+  $self->{cb}->($self, $state) if $trigger;
 }
 
 1;

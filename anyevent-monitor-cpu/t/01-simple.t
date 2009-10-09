@@ -117,6 +117,9 @@ sub start_load_watcher {
 
       $direction       = -1;
       $expected_active = 1;
+      
+      ok($cpu->is_high);
+      ok(!$cpu->is_low);
     }
     else {
       $l_usage = $cpu->usage;
@@ -129,6 +132,9 @@ sub start_load_watcher {
       $direction       = 1;
       $expected_active = 0;
       $warm_up_cycles-- if $warm_up_cycles > 0;
+      
+      ok(!$cpu->is_high);
+      ok($cpu->is_low);
     }
     note(
       ">>> active? $active, next expected $expected_active, direction $direction, warm_up_cycles $warm_up_cycles ($test_name)"
