@@ -17,7 +17,7 @@ sub new {
   my %args = @_ == 1 ? %{$_[0]} : @_;
 
   my $self = bless {
-    cb => delete $args{cb} || croak("Required parameter 'cb' not found, "),
+    cb => delete $args{cb},
 
     interval => delete $args{interval} || .25,
 
@@ -32,6 +32,8 @@ sub new {
     usage => undef,
     state => 1,
   }, $class;
+
+  croak("Required parameter 'cb' not found, ") unless $self->{cb};
 
   $self->start;
 
