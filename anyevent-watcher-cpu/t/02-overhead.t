@@ -5,25 +5,28 @@ use warnings;
 use Test::More;
 
 use AnyEvent;
-use AnyEvent::Monitor::CPU qw( monitor_cpu );
+use AnyEvent::Monitor::CPU;
 use Proc::CPUUsage;
 
 #
 # Measure the overhead of our CPU monitor
-# 
+#
 
 ## Run the test for 5 seconds
 diag("Measure overhead for 5 seconds...");
-my $cv = AnyEvent->condvar;
+my $cv    = AnyEvent->condvar;
 my $timer = AnyEvent->timer(
   after => 5,
-  cb => sub {
+  cb    => sub {
     $cv->send;
   },
 );
 
 ## Start a monitor
-my $monitor = monitor_cpu cb => sub {};
+my $m = AnyEvent::Monitor::CPU->new(
+  { cb => sub { }
+  }
+);
 
 ## Measure the overhead
 my $cpu = Proc::CPUUsage->new;
@@ -32,6 +35,7 @@ $cpu->usage;
 $cv->recv;
 my $usage = $cpu->usage;
 
-ok($usage <= .05, sprintf('Overhead is less than 1%% (%0.4f%%)', $usage * 100));
+ok($usage <= .05,
+  sprintf('Overhead is less than 1%% (%0.4f%%)', $usage * 100));
 
 done_testing();
