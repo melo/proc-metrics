@@ -35,3 +35,70 @@ sub _cpu_time {
 }
 
 1;
+
+__END__
+
+=encoding utf8
+
+=head1 NAME
+
+Proc::CPUUsage - measures the percentage of CPU the current process is using
+
+
+=head1 SYNOPSIS
+
+    my $cpu = Proc::CPUUsage->new;
+    my $usage1 = $cpu->usage; ## returns usage since new()
+    my $usage2 = $cpu->usage; ## returns usage since last usage()
+    ...
+
+
+=head1 DESCRIPTION
+
+This module allows you to measure how much CPU your perl process is
+using.
+
+The construction of the object defines the inital values. Each call to
+L</"usage()"> returns the CPU usage since the last call to L</"new()"> or
+L</"usage()">.
+
+The value returned is normalised between 0 and 1, the latter being
+100% usage.
+
+
+=head1 METHODS
+
+=head2 new()
+
+    $cpu = Proc::CPUUsage->new()
+
+Creates a new L<Proc::CPUUsage|Proc::CPUUsage> object with the current values for CPU usage.
+
+
+=head2 usage()
+
+    $usage = $cpu->usage()
+
+Returns the CPU usage since the last call to L</"new()"> or L</"usage()">.
+
+The value returned is greater than 0 and lower or equal to 1.
+
+
+=head1 SEE ALSO
+
+L<AnyEvent::Watcher::CPUUsage|AnyEvent::Watcher::CPUUsage> for a more practical use for this module.
+
+
+=head1 AUTHOR
+
+Pedro Melo, C<< <melo at cpan.org> >>
+
+
+=head1 COPYRIGHT & LICENSE
+
+Copyright 2009 Pedro Melo.
+
+This program is free software; you can redistribute it and/or modify it
+under the same terms as Perl itself.
+
+=cut
