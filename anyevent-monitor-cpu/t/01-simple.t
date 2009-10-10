@@ -63,7 +63,7 @@ for my $tc (@cases) {
   my ($name, $params) = @$tc;
   my $high_lim = $params->{high};
   my $low_lim  = $params->{low};
-  my $cycles   = $params->{cycles};
+  my $cycles   = $params->{cycles} ||= $ENV{WARM_UP_CYCLES} || 1;
   my $cv       = AnyEvent->condvar;
 
   diag("Starting test '$name': high => $high_lim, low => $low_lim");
@@ -124,7 +124,7 @@ sub start_load_watcher {
 
   ## the load watcher
   my $expected_active = 1;
-  my $warm_up_cycles = $params->{cycles} || $ENV{WARM_UP_CYCLES} || 1;
+  my $warm_up_cycles  = $params->{cycles};
   my ($h_usage, $l_usage, $h_iters, $l_iters);
 
   return monitor_cpu %$params, cb => sub {
