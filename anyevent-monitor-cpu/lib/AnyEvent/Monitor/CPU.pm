@@ -34,6 +34,7 @@ sub new {
   }, $class;
 
   croak("Required parameter 'cb' not found, ") unless $self->{cb};
+  croak("Parameter 'cb' must be a coderef, ") unless ref $self->{cb} eq 'CODE';
 
   $self->start;
 
