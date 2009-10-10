@@ -93,6 +93,10 @@ sub _check_cpu {
   my $usage = $self->{usage} = $self->{cpu}->usage;
   if    ($usage > $self->{high}) { $chs++; $cls = 0 }
   elsif ($usage < $self->{low})  { $cls++; $chs = 0 }
+  else {
+    $chs-- if $chs;
+    $cls-- if $cls;
+  }
   $self->{usage_sum} += $usage;
   $self->{usage_count}++;
 
