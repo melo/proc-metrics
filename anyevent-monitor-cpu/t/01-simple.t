@@ -79,6 +79,7 @@ for my $tc (@cases) {
   ok(!$stats->{usage_count});
   ok(!$stats->{usage_sum});
   ok(!$stats->{usage_avg});
+  is($stats->{usage}, $mon->usage);
 
   my ($high, $low, $h_iters, $l_iters) = $cv->recv;
   $mon->stop;
@@ -100,6 +101,7 @@ for my $tc (@cases) {
     ok($stats->{usage_count});
     ok($stats->{usage_sum});
     ok($stats->{usage_avg});
+    is($stats->{usage}, $mon->usage);
     my $margin = $params->{high} - $params->{low};
     if ($margin >= .10) {
       ok(

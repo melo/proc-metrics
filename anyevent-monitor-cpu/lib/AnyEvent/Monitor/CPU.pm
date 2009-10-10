@@ -79,6 +79,7 @@ sub stats {
   }
   $stats{usage_count} = $count;
   $stats{usage_sum}   = $sum;
+  $stats{usage}       = $self->{usage};
 
   return \%stats;
 }
