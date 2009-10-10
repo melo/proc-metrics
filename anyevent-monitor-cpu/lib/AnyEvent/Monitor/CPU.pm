@@ -55,7 +55,8 @@ sub start {
   return;
 }
 
-sub stop { delete $_[0]->{timer} }
+sub stop       { delete $_[0]->{timer} }
+sub is_running { $_[0]->{timer} }
 
 sub usage   { return $_[0]->{usage} }
 sub is_low  { return $_[0]->{state} == 1 }

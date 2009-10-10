@@ -82,7 +82,9 @@ for my $tc (@cases) {
   is($stats->{usage}, $mon->usage);
 
   my ($high, $low, $h_iters, $l_iters) = $cv->recv;
+  ok($mon->is_running);
   $mon->stop;
+  ok(!$mon->is_running);
 
   if (!$high) {
     fail("Aborted test after $secs seconds");
