@@ -66,8 +66,7 @@ for my $tc (@cases) {
   my $cycles   = $params->{cycles};
   my $cv       = AnyEvent->condvar;
 
-  diag(
-    "Starting test '$name': high => $high_lim, low => $low_lim");
+  diag("Starting test '$name': high => $high_lim, low => $low_lim");
 
   ## Make sure we stop it at some point
   my $secs = 10 * ($cycles || 1);
@@ -94,21 +93,17 @@ for my $tc (@cases) {
     fail("Aborted test after $secs seconds");
   }
   else {
-    ok(
-      $high >= $high_lim,
-      "Good high value ($h_iters for $high) in '$name' (target $high_lim)"
-    );
-    ok(
-      $low <= $low_lim,
-      "Good low value ($l_iters for $low) in '$name' (target $low_lim)"
-    );
+    ok($high >= $high_lim,
+      "Good high value ($h_iters for $high) in '$name' (target $high_lim)");
+    ok($low <= $low_lim,
+      "Good low value ($l_iters for $low) in '$name' (target $low_lim)");
 
     $stats = $mon->stats;
     ok($stats->{usage_count}, "Good final count ($stats->{usage_count})");
-    ok($stats->{usage_sum}, "Good final usage sum ($stats->{usage_sum})");
-    ok($stats->{usage_avg}, "Good final avg usage ($stats->{usage_avg})");
+    ok($stats->{usage_sum},   "Good final usage sum ($stats->{usage_sum})");
+    ok($stats->{usage_avg},   "Good final avg usage ($stats->{usage_avg})");
     is($stats->{usage}, $mon->usage, "Correct usage in stats");
-    my $margin = ($high_lim - $low_lim)/2;
+    my $margin = ($high_lim - $low_lim) / 2;
     if ($margin >= .04) {
       ok(
         $stats->{usage_avg} > ($low_lim - $margin),
@@ -139,34 +134,39 @@ sub start_load_watcher {
       "Got CPU Monitor trigger for expected state $expected_active ($test_name)"
     ) unless $warm_up_cycles;
 
+    my $avg = $cpu->stats->{usage_avg} || '<no average yet>';
     if ($active == 0) {
       $h_usage = $cpu->usage;
       $h_iters = $iters;
-      note("Load over limit at ${h_iters}'s: $h_usage ($test_name)");
 
       $direction       = -1;
       $expected_active = 1;
 
-      ok($cpu->is_high);
+      ok($cpu->is_high,
+        "Load over limit at ${h_iters}'s: $h_usage avg $avg ($test_name)");
       ok(!$cpu->is_low);
     }
     else {
       $l_usage = $cpu->usage;
       $l_iters = $iters;
-      note("Load under limit at ${l_iters}'s: $l_usage ($test_name)");
 
       $cv->send($h_usage, $l_usage, $h_iters, $l_iters)
         unless $warm_up_cycles;
 
       $direction       = 1;
       $expected_active = 0;
+
+      ok(!$cpu->is_high,
+        "Load under limit at ${l_iters}'s: $l_usage avg $avg ($test_name)");
+      ok($cpu->is_low);
+
       if ($warm_up_cycles > 0) {
         $warm_up_cycles--;
-        $cpu->reset_stats if $warm_up_cycles == 0;
+        if ($warm_up_cycles == 0) {
+          $cpu->reset_stats;
+          pass('Start test stats NOW!');
+        }
       }
-
-      ok(!$cpu->is_high);
-      ok($cpu->is_low);
     }
-    }
+  }
 }
