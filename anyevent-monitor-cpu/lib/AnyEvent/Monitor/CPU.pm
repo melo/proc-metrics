@@ -23,8 +23,8 @@ sub new {
 
     high         => delete $args{high}         || .95,
     low          => delete $args{low}          || .80,
-    high_samples => delete $args{high_samples} || 1,
-    low_samples  => delete $args{low_samples}  || 1,
+    high_samples => delete $args{high_samples} || 2,
+    low_samples  => delete $args{low_samples}  || 2,
     cur_high_samples => 0,
     cur_low_samples  => 0,
 

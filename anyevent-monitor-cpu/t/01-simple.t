@@ -47,6 +47,7 @@ my @cases = (
   ['default_values' => {high => .95, low => .80}],
   ['keep_it_busy'   => {high => .97, low => .95}],
   ['take_it_slow'   => {high => .30, low => .20}],
+  ['high_and_low'   => {high => .90, low => .10}],
   [ 'half-empty' => {
       high         => .55,
       low          => .45,
