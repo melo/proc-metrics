@@ -19,7 +19,7 @@ my $load_gen_timer = AnyEvent->timer(
   after    => .5,
   interval => .1,
   cb       => sub {
-    note("  ... generating $iters count of load");
+    note("  ... generating $iters count of load") if $ENV{AUTHOR_TESTING};
     my $i = $iters;
     my $a = 0;
     while ($i--) {
@@ -37,7 +37,7 @@ my $load_mod_timer = AnyEvent->timer(
     my $delta = $direction * $incr;
     $iters += $delta;
     $iters = 0 if $iters < 0;
-    note("  !!! Delta is $delta, iters now $iters");
+    note("  !!! Delta is $delta, iters now $iters") if $ENV{AUTHOR_TESTING};
   },
 );
 
