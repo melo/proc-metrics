@@ -60,13 +60,16 @@ my @cases = (
 
 for my $tc (@cases) {
   my ($name, $params) = @$tc;
-  my $cv = AnyEvent->condvar;
+  my $high_lim = $params->{high};
+  my $low_lim  = $params->{low};
+  my $cycles   = $params->{cycles};
+  my $cv       = AnyEvent->condvar;
 
   diag(
-    "Starting test '$name': high => $params->{high}, low => $params->{low}");
+    "Starting test '$name': high => $high_lim, low => $low_lim");
 
   ## Make sure we stop it at some point
-  my $secs = 10 * ($params->{cycles} || 1);
+  my $secs = 10 * ($cycles || 1);
   my $time_limit = AnyEvent->timer(
     after => $secs,
     cb    => sub {
@@ -91,28 +94,28 @@ for my $tc (@cases) {
   }
   else {
     ok(
-      $high >= $params->{high},
-      "Good high value ($h_iters for $high) in '$name' (target $params->{high})"
+      $high >= $high_lim,
+      "Good high value ($h_iters for $high) in '$name' (target $high_lim)"
     );
     ok(
-      $low <= $params->{low},
-      "Good low value ($l_iters for $low) in '$name' (target $params->{low})"
+      $low <= $low_lim,
+      "Good low value ($l_iters for $low) in '$name' (target $low_lim)"
     );
 
     $stats = $mon->stats;
-    ok($stats->{usage_count});
-    ok($stats->{usage_sum});
-    ok($stats->{usage_avg});
-    is($stats->{usage}, $mon->usage);
-    my $margin = $params->{high} - $params->{low};
-    if ($margin >= .10) {
+    ok($stats->{usage_count}, "Good final count ($stats->{usage_count})");
+    ok($stats->{usage_sum}, "Good final usage sum ($stats->{usage_sum})");
+    ok($stats->{usage_avg}, "Good final avg usage ($stats->{usage_avg})");
+    is($stats->{usage}, $mon->usage, "Correct usage in stats");
+    my $margin = ($high_lim - $low_lim)/2;
+    if ($margin >= .04) {
       ok(
-        $stats->{usage_avg} > ($params->{low} - $margin / 2),
-        "Average usage ($stats->{usage_avg}) is above lower watermark"
+        $stats->{usage_avg} > ($low_lim - $margin),
+        "Avg usage ($stats->{usage_avg}) is above lower watermark ($low_lim - margin $margin)"
       );
       ok(
-        $stats->{usage_avg} < ($params->{high} + $margin / 2),
-        "Average usage ($stats->{usage_avg}) is below high watermark"
+        $stats->{usage_avg} < ($high_lim + $margin),
+        "Avg usage ($stats->{usage_avg}) is below high watermark ($high_lim + margin $margin)"
       );
     }
   }
