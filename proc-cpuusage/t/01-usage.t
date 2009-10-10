@@ -12,9 +12,9 @@ sleep(1);
 $usage = $cpu->usage;
 ok($usage < .1, "Sleepy process, little usage ($usage)");
 
-for (my $i = 0; $i < 100_000; $i++) {};
+for (my $i = 0; $i < 500_000; $i++) {};
 $usage = $cpu->usage;
-ok($usage > .9, "Active process, big usage ($usage)");
+ok($usage > .5, "Active process, big usage ($usage)");
 
 ## No support for getrusage()
 my @bad_replies = (
