@@ -192,7 +192,7 @@ AnyEvent::Monitor::CPU - monitors your process CPU usage, with high/low watermar
 
 =head1 DESCRIPTION
 
-This module gives you a CPU monitor with high/low threseholds and
+This module gives you a CPU monitor with high/low thresholds and
 triggers.
 
 On a regular basis, it will check the CPU usage of the current process.
@@ -236,7 +236,7 @@ the average loads will most likelly be outside the limits.
     $cpu = AnyEvent::Monitor::CPU->new({ cb => sub {}, ... });
 
 Creates a new L<AnyEvent::Monitor::CPU|AnyEvent::Monitor::CPU> object
-and start the polling process.
+and starts the polling process.
 
 The following parameters are accepted:
 
