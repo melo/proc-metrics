@@ -33,7 +33,7 @@ sub usage {
 
 sub _cpu_time {
   my ($utime, $stime) = getrusage();
-  return unless defined $utime && defined $stime;
+  return undef unless defined $utime && defined $stime;
   return $utime+$stime;
 }
 
